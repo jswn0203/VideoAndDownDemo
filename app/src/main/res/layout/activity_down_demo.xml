@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/bt_down"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@color/colorPrimaryDark"
+            android:text="获取列表" />
+
+        <Button
+            android:id="@+id/bt_cancel"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_weight="1"
+            android:background="@color/colorPrimaryDark"
+            android:text="删除全部" />
+
+        <Button
+            android:id="@+id/bt_re_start"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@color/colorPrimaryDark"
+            android:text="添加" />
+
+        <Button
+            android:id="@+id/delete_selet"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginLeft="3dp"
+            android:layout_weight="1"
+            android:background="@color/colorPrimaryDark"
+            android:text="删除" />
+
+        <Button
+            android:id="@+id/qiehuan"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginLeft="3dp"
+            android:layout_weight="1"
+            android:background="@color/colorPrimaryDark"
+            android:text="切换用户" />
+
+
+    </LinearLayout>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rlv_down"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="5dp"
+        android:layout_weight="1">
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+
+</LinearLayout>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white"
+    android:orientation="horizontal">
+
+    <ProgressBar
+        android:id="@+id/item_pb"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginLeft="10dp"
+        android:layout_toLeftOf="@+id/tv_down_state"
+        android:layout_weight="1"
+        android:progress="10" />
+
+    <TextView
+        android:background="@color/colorPrimaryDark"
+        android:id="@+id/tv_down_state"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_alignParentRight="true"
+        android:layout_margin="5dp"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="下载"
+        android:textColor="@android:color/black" />
+
+    <TextView
+        android:id="@+id/tv_down_size"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_down_state"
+        android:layout_marginLeft="10dp"
+        android:gravity="center_vertical"
+        android:text="大大说"
+        android:textColor="@android:color/black" />
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/black"
+        android:layout_below="@+id/tv_down_size"
+        android:layout_marginBottom="5dp"/>
+
+</RelativeLayout>
