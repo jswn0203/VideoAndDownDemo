@@ -15,6 +15,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  id-token: write   # claude-code-action 的鉴权探测需要，缺失会报 OIDC 错误
 
 concurrency:
   group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
@@ -43,6 +44,9 @@ jobs:
           # Secret：ARK_AUTH_TOKEN（ark- 开头的 Plan Key）
           # Variable：ARK_MODEL（如 GLM，具体 ID 以 `arkcli resources list` 为准）、可选 ARK_BASE_URL
           ANTHROPIC_BASE_URL: ${{ vars.ARK_BASE_URL || 'https://ark.cn-beijing.volces.com/api/plan' }}
+          # 注意：action 内部靠 ANTHROPIC_API_KEY 判断"是否已配置鉴权"，
+          # 只设 AUTH_TOKEN 它会误判为未配置而走 OIDC 报错。两个都设，值相同。
+          ANTHROPIC_API_KEY: ${{ secrets.ARK_AUTH_TOKEN }}
           ANTHROPIC_AUTH_TOKEN: ${{ secrets.ARK_AUTH_TOKEN }}
           ANTHROPIC_MODEL: ${{ vars.ARK_MODEL || 'glm-4.6' }}
           ANTHROPIC_DEFAULT_SONNET_MODEL: ${{ vars.ARK_MODEL || 'glm-4.6' }}

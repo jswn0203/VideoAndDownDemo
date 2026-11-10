@@ -67,8 +67,10 @@ jobs:
         with:
           github-token: ${{ github.token }}
 
-  # hitl 闸门：hitl 模式或 risk:high 时，要求人工批准后才能过这一关
-  # （配合分支保护把本 job 设为 required check：人不点运行就永远红着）
+  # hitl 提示牌（方案②·免费降级）：hitl 模式或 risk:high 时打印人工审查提醒
+  # 真正的人工闸门 = 分支保护的 Required approvals（人 Review approve 后才能合并）
+  # 未来升级 GitHub Pro/Team 后，可在本 job 加回 environment: manual-gate
+  # （配合 Settings → Environments 的 Required reviewers）恢复"两次点击"完整闸门
   manual-gate:
     runs-on: ubuntu-latest
     needs: test-agent
@@ -77,5 +79,6 @@ jobs:
       (vars.PIPELINE_MODE != 'auto' ||
        contains(github.event.pull_request.labels.*.name, 'risk:high'))
     steps:
-      - run: >
-          echo "人工闸门：请在 PR 页 Review approve 后，手动点击本 job 的 Re-run 放行。"
+      - run: >-
+          echo "⚠️ hitl/高风险 PR：请人工 Review 本 PR 后批准合并。
+          auto 模式（非 risk:high）下本 job 不会运行，由机器人自动批准。"
