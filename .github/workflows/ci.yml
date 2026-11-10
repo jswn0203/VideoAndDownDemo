@@ -28,8 +28,9 @@ jobs:
         if: always()
         run: |
           if ! find . -path '*/build/test-results/*' -name '*.xml' 2>/dev/null | grep -q .; then
-            mkdir -p .test-results-empty
-            echo "unit-tests 未产出任何 JUnit 报告（可能编译失败或工程无单测）" > .test-results-empty/no-results.txt
+            # 注意目录名不能以点开头：upload-artifact@v4 默认忽略隐藏目录
+            mkdir -p test-results-placeholder
+            echo "unit-tests 未产出任何 JUnit 报告（可能编译失败或工程无单测）" > test-results-placeholder/no-results.txt
           fi
       - uses: actions/upload-artifact@v4
         if: always()
@@ -37,7 +38,7 @@ jobs:
           name: test-results
           path: |
             **/build/test-results/
-            .test-results-empty/
+            test-results-placeholder/
           retention-days: 7
 
   test-agent:
