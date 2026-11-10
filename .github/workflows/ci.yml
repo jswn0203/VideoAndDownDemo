@@ -20,13 +20,24 @@ jobs:
           distribution: temurin
           java-version: '17'          # 按项目调整
           cache: gradle
-      - run: ./gradlew --no-daemon lintDebug testDebugUnitTest || true   # 失败也产出报告
+      - name: 跑单测（失败也产出报告）
+        run: |
+          chmod +x gradlew          # Linux runner 上 git 不带执行位时 gradlew 会 Permission denied
+          ./gradlew --no-daemon testDebugUnitTest || true
+      - name: 保证产物必然存在（无报告时放占位文件）
+        if: always()
+        run: |
+          if ! find . -path '*/build/test-results/*' -name '*.xml' 2>/dev/null | grep -q .; then
+            mkdir -p .test-results-empty
+            echo "unit-tests 未产出任何 JUnit 报告（可能编译失败或工程无单测）" > .test-results-empty/no-results.txt
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
           path: |
             **/build/test-results/
+            .test-results-empty/
           retention-days: 7
 
   test-agent:
@@ -45,6 +56,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - run: chmod +x gradlew || true
       - name: 汇总测试结果并回传 PR
         env:
           GH_TOKEN: ${{ github.token }}

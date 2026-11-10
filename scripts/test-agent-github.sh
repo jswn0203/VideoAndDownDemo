@@ -22,7 +22,9 @@ while IFS=$'\t' read -r errors failures skipped tests; do
 done < <(find . -name "TEST-*.xml" -exec \
   sed -n 's/<testsuite[^>]*errors="\([0-9]*\)"[^>]*failures="\([0-9]*\)"[^>]*skipped="\([0-9]*\)"[^>]*tests="\([0-9]*\)".*/\1\t\2\t\3\t\4/p' {} \; 2>/dev/null) || true
 
-if [ "$FAILED" -eq 0 ] && [ "$TOTAL" -gt 0 ]; then
+if [ "$TOTAL" -eq 0 ]; then
+  RESULT=red; echo "- 结论：⚠️ 未发现任何 JUnit 报告（编译失败或工程无单测），请人工确认" >> "$REPORT"
+elif [ "$FAILED" -eq 0 ]; then
   RESULT=green; echo "- 结论：✅ 共 $TOTAL 例，全部通过" >> "$REPORT"
 else
   RESULT=red;   echo "- 结论：❌ 共 $TOTAL 例，失败/错误 $FAILED" >> "$REPORT"
