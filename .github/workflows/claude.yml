@@ -1,7 +1,7 @@
-# GitHub 版：官方 Claude Code Action
-# 触发：issue/PR 中评论 @claude，或 issue 打上 status:confirmed 标签
-# 对应 GitLab 方案的 webhook 监听服务 + coding-agent job，这里一个 workflow 全覆盖
-name: Claude Code Agent
+# B 方案：不依赖 Anthropic 账号/Claude GitHub App 的通用直连版
+# 在 Actions runner 里直接跑 claude CLI，模型走火山方舟 Agent Plan（GLM）
+# 触发：issue/PR 中评论 @claude（仅仓库所有者/成员/协作者），或 issue 打上 status:confirmed 标签
+name: Claude Code Agent (Plan B · Ark Direct)
 
 on:
   issue_comment:
@@ -15,7 +15,6 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
-  id-token: write   # claude-code-action 的鉴权探测需要，缺失会报 OIDC 错误
 
 concurrency:
   group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
@@ -25,9 +24,16 @@ jobs:
   claude:
     runs-on: ubuntu-latest
     if: |-
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'issues' && github.event.label.name == 'status:confirmed')
+      (
+        (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') &&
+        contains(github.event.comment.body, '@claude') &&
+        (github.event.comment.author_association == 'OWNER' ||
+         github.event.comment.author_association == 'MEMBER' ||
+         github.event.comment.author_association == 'COLLABORATOR')
+      ) ||
+      (github.event_name == 'issues' &&
+       github.event.label.name == 'status:confirmed' &&
+       github.event.sender.login == github.repository_owner)
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,29 +44,80 @@ jobs:
           distribution: temurin
           java-version: '17'     # 按项目 AGP 要求调整
 
-      - uses: anthropics/claude-code-action@v1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: 组装任务上下文
         env:
-          # ---- 模型接入：火山方舟 Agent Plan（Anthropic 兼容端点）----
-          # Secret：ARK_AUTH_TOKEN（ark- 开头的 Plan Key）
-          # Variable：ARK_MODEL（如 GLM，具体 ID 以 `arkcli resources list` 为准）、可选 ARK_BASE_URL
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          ISSUE="${{ github.event.issue.number }}"
+          PR="${{ github.event.pull_request.number }}"
+          REPO="$GITHUB_REPOSITORY"
+          {
+            echo "# 任务说明"
+            echo "你是本仓库的编码 Agent。请遵守仓库内 CLAUDE.md 与 .claude/agents/ 的角色分工规则。"
+            echo "目标：完成下方 issue/指令中描述的开发任务，并把结果落地为 PR。"
+            echo ""
+            echo "# 执行规则"
+            echo "1. 新建分支完成实现（分支名 feat/issue-<编号>-<简述>），提交后用 gh 创建 PR；"
+            echo "   PR 描述第一行写 \"Closes #<issue编号>\"。若 PR 已存在则推送更新到该分支。"
+            echo "2. 完成后执行：gh issue edit <issue编号> --add-label \"status:testing\""
+            echo "3. 只做任务描述内的事，不越界改动无关文件。"
+            echo "4. 最后用中文输出：做了什么、改了哪些文件、测试情况。"
+            echo ""
+            echo "# 上下文"
+            if [ -n "$ISSUE" ]; then
+              echo "## Issue #$ISSUE 标题与正文"
+              gh issue view "$ISSUE" -R "$REPO" --json title,body -q '.title + "\n\n" + .body'
+              echo ""
+              echo "## Issue 评论"
+              gh issue view "$ISSUE" -R "$REPO" --comments || true
+            fi
+            if [ -n "$PR" ]; then
+              echo ""
+              echo "## PR #$PR 信息"
+              gh pr view "$PR" -R "$REPO" --json title,body -q '.title + "\n\n" + .body' || true
+              echo "## PR 评论"
+              gh pr view "$PR" -R "$REPO" --comments || true
+            fi
+            echo ""
+            echo "# 本次用户指令"
+            echo "${{ github.event.comment.body || github.event.issue.body }}"
+          } > context.md
+
+      - name: 运行 Claude（方舟 GLM 直连）
+        env:
+          # 模型接入：火山方舟 Agent Plan（Anthropic 兼容端点），不依赖 Anthropic 官方账号
           ANTHROPIC_BASE_URL: ${{ vars.ARK_BASE_URL || 'https://ark.cn-beijing.volces.com/api/plan' }}
-          # 注意：action 内部靠 ANTHROPIC_API_KEY 判断"是否已配置鉴权"，
-          # 只设 AUTH_TOKEN 它会误判为未配置而走 OIDC 报错。两个都设，值相同。
-          ANTHROPIC_API_KEY: ${{ secrets.ARK_AUTH_TOKEN }}
           ANTHROPIC_AUTH_TOKEN: ${{ secrets.ARK_AUTH_TOKEN }}
           ANTHROPIC_MODEL: ${{ vars.ARK_MODEL || 'glm-4.6' }}
           ANTHROPIC_DEFAULT_SONNET_MODEL: ${{ vars.ARK_MODEL || 'glm-4.6' }}
           ANTHROPIC_DEFAULT_HAIKU_MODEL: ${{ vars.ARK_MODEL || 'glm-4.6' }}
           ANTHROPIC_DEFAULT_OPUS_MODEL: ${{ vars.ARK_MODEL || 'glm-4.6' }}
           API_TIMEOUT_MS: '3000000'
-        with:
-          claude_args: |
-            --permission-mode acceptEdits
-            --allowedTools "Bash Read Edit Write"
-          # 让 Agent 遵守 label 状态机与 PR 脚本约定（CLAUDE.md 亦会被自动读取）
-          prompt: |
-            你是本仓库的编码 Agent，遵守仓库内 CLAUDE.md 与 .claude/agents/ 的分工规则。
-            若由 issue 的 status:confirmed 标签触发：读取 issue 全部评论与验收标准，
-            按主线调度 subagent 完成实现，开分支提交，创建 PR 并在描述中写 "Closes #<issue编号>"，
-            给 issue 打 status:testing 标签。
-            若由 @claude 评论触发：按评论指令读取上下文并执行；涉及代码改动时更新现有 PR 分支。
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "claude-agent[bot]"
+          git config user.email "claude-agent[bot]@users.noreply.github.com"
+          claude -p "$(cat context.md)" \
+            --permission-mode acceptEdits \
+            --allowedTools "Bash Read Edit Write" 2>&1 | tee /tmp/claude-out.md
+
+      - name: 回传执行结果
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -s /tmp/claude-out.md ] || echo "（Agent 无输出，请到 Actions 页查看完整日志）" > /tmp/claude-out.md
+          head -c 40000 /tmp/claude-out.md > /tmp/trim.md && mv /tmp/trim.md /tmp/claude-out.md
+          if [ -n "${{ github.event.issue.number }}" ]; then
+            gh issue comment "${{ github.event.issue.number }}" --body-file /tmp/claude-out.md
+          else
+            gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/claude-out.md
+          fi
