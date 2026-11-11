@@ -26,6 +26,15 @@
             />
 
         <TextView
+            android:id="@+id/tv_ascii"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:textColor="@android:color/white"
+            android:text="文字"
+            android:layout_toLeftOf="@+id/down"
+            android:gravity="center"/>
+
+        <TextView
             android:id="@+id/down"
             android:layout_width="50dp"
             android:layout_height="match_parent"

@@ -1,5 +1,6 @@
 package com.example.videoanddowndemo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.SeekBar;
@@ -35,13 +36,18 @@ public class MainActivity extends AppCompatActivity {
         video.start();
     }
 
-    @OnClick({R.id.back, R.id.down, R.id.tv_speed, R.id.bottom_pause})
+    @OnClick({R.id.back, R.id.down, R.id.tv_ascii, R.id.tv_speed, R.id.bottom_pause})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.back:
                 finish();
                 break;
             case R.id.down:
+                break;
+            case R.id.tv_ascii:
+                Intent intent = new Intent(this, AsciiActivity.class);
+                intent.putExtra("path", getIntent().getStringExtra("path"));
+                startActivity(intent);
                 break;
             case R.id.tv_speed:
                 break;

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <com.example.videoanddowndemo.ascii.AsciiView
+        android:id="@+id/ascii_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <RelativeLayout
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+
+        <TextView
+            android:id="@+id/back"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:text="返回"
+            android:gravity="center"
+            android:textColor="@android:color/white" />
+
+        <TextView
+            android:id="@+id/tv_ascii_title"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="文字动画"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:textColor="@android:color/white" />
+
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/tv_ascii_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="正在解析视频 0/0"
+        android:textColor="@android:color/white" />
+
+    <ProgressBar
+        android:id="@+id/progress_ascii"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_ascii_progress"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:layout_height="50dp">
+
+        <TextView
+            android:id="@+id/bottom_pause"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:text="暂停"
+            android:gravity="center"
+            android:textColor="@android:color/white" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tv_ascii_time"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="00:00:00 / 00:00:00"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:layout_marginRight="10dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>
